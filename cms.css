@@ -1,0 +1,168 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    overflow: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.clearfix {
+    clear:both;
+    display:inline-block;
+    display:block;
+}
+
+#SiteMainBody {
+    position: relative; top: 0px;
+    background-color: white;
+    margin: 0;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px;
+}
+
+.full-pane {
+    width: 100%;
+    background-color: white;
+}
+
+/* For mobile phones: */
+.full-pane .pane {
+    display: table-cell;
+    text-align: center;
+    float:left;
+    width: 100%;
+    color: black;
+    padding: 10px;
+    margin: 2px;
+    text-decoration: none;
+    overflow: auto;
+    background-color: white;
+}
+
+#SiteNavigationBar {
+    width: 100%;
+    background-color: white;
+}
+
+/* For mobile phones: */
+#SiteNavigationBar a {
+    display: table-cell;
+    text-align: center;
+    float:left;
+    width: 100%;
+    color: black;
+    padding: 10px;
+    margin: 2px;
+    text-decoration: none;
+    overflow: auto;
+    background-color: white;
+}
+#SiteNavigationBar a:hover {
+    background-color: paleturquoise;
+    color: black;
+}
+#SiteNavigationBar a.unsaved:hover {
+    background-color: lightslategray;
+    color: white;
+}
+#SiteNavigationBar a.unsaved {
+    background-color: orange;
+    color: white;
+}
+
+[class*="col-"] {
+    float: left;
+    width: 100%;
+}
+@media only screen and (min-width: 600px) {
+    #SiteNavigationBar {
+        display: table;
+        table-layout: fixed;
+    }
+    #SiteNavigationBar a {
+        display: table-cell;
+        float: none;
+        padding: 15px;
+        margin: 0;
+    }
+
+    .full-pane {
+        display: table;
+        table-layout: fixed;
+    }
+    .full-pane .pane {
+        display: table-cell;
+        float: none;
+        padding: 15px;
+        margin: 0;
+    }
+
+    /* For desktop: */
+    .col-1 {width: 8.33%;}
+    .col-2 {width: 16.66%;}
+    .col-3 {width: 25%;}
+    .col-4 {width: 33.33%;}
+    .col-5 {width: 41.66%;}
+    .col-6 {width: 50%;}
+    .col-7 {width: 58.33%;}
+    .col-8 {width: 66.66%;}
+    .col-9 {width: 75%;}
+    .col-10 {width: 83.33%;}
+    .col-11 {width: 91.66%;}
+    .col-12 {width: 100%;}
+}
+
+#mainPane, tbody, #mainRow, td, .fileBrowser {
+    position: absolute;
+    height: 100%;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+}
+
+#mainPane {
+    left: 0;
+    width: 100%;
+    top: 50px;
+    bottom: 50px;
+}
+
+#mainRow {
+    position: absolute;
+    right: 0;
+    left: 0;
+}
+
+tbody {
+    position: static;
+}
+
+td {
+    /*position: relative;*/
+    overflow: auto;
+    width:250px;
+    white-space:nowrap;
+    border: 1px solid black;
+}
+
+.fileBrowser {
+    padding: 5px;
+    overflow: visible;
+}
+
+.CodeMirror {
+    height: 100%;
+}
+
+#contextMenu {
+    position: absolute;
+    top: 100px;
+    z-index: 10;
+    background-color: lightgray;
+}
