@@ -13,7 +13,7 @@
             "relativePath" => "../beta/",
             "absolutePath" => "https://admin.example.com/"
         ]
-    ]
+    ];
 
-    $newFileTemplate["php"] = $rootRelative["beta"] . "resources/page/default.php";
+    $newFileTemplate["php"] = $targets["beta"]["relativePath"] . "resources/page/default.php";
 ?>
