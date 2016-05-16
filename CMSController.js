@@ -5,7 +5,9 @@
     var interactFileIsDir;
     var interactElement; //HTML link interacted with
     var insertParentList;
-    var serverFileContents;
+    var targetFileContents;
+    var targetFileHash;
+    var publishTargetFileHash;
     // var fileBrowsers in index.php
     // var mainFileBrowser ind index.php
 
@@ -174,11 +176,8 @@
 
     //Periodically check if work is unsaved
     setInterval(function() {
-        if(!currentFilePath) {
-            return;
-        }
         var saveButton = document.getElementById("saveButton");
-        if(codeEditor.getValue() === serverFileContents) {
+        if(isSaved()) {
             saveButton.className = "";
         }
         else {
@@ -202,7 +201,7 @@
         }
 
         if(!publishRoot_mirror) {
-            if(!confirm("You are about to make a change directly to the live site.\nAre you sure you want to continue?")) {
+            if(!confirm("You are about to make a change directly to an end deployment target.\nAre you sure you want to continue?")) {
                 return;
             }
         }
@@ -214,9 +213,19 @@
         xhttp.addData("action", "save");
         xhttp.addData("file", currentFilePath);
         xhttp.addData("content", submittingCode);
+        //Pass the hash of the unmodified file back to the server
+        xhttp.addData("hash", targetFileHash);
         xhttp.onresponse = function() {
-            serverFileContents = submittingCode;
-            checkIsFilePublished();
+            if(!this.reponse.success) {
+                alert("The file on the server has been modified by another user since you opened it. Please compare your working copy with the server copy before overwriting it.")
+            }
+            else { //on success
+                targetFileHash = this.response.hash;
+                targetFileContents = submittingCode;
+            }
+
+            applyPublished(this.response.hash === this.response.deployHash);
+            publishTargetFileHash = this.response.deployHash;
         }
         xhttp.send();
     }
@@ -224,7 +233,7 @@
         if(!currentFilePath) {
             return true;
         }
-        return codeEditor.getValue() === serverFileContents;
+        return codeEditor.getValue() === targetFileContents;
     }
 
     function publishFile() {
@@ -235,28 +244,35 @@
         xhttp.addData("target", serveTarget);
         xhttp.addData("action", "publish");
         xhttp.addData("file", currentFilePath);
+        xhttp.addData("hash", targetFileHash);
+        xhttp.addData("deployHash", publishTargetFileHash);
         xhttp.onresponse = function() {
-            checkIsFilePublished();
+            if(this.response.hash != targetFileHash) {
+                alert("The file you are trying to deploy has been modified since you last viewed it. \n\rFile not deployed.");
+            }
+            else if(this.response.deployHash != targetFileHash) {
+                if(this.response.deployHash != publishTargetFileHash) {
+                    alert("The deployed file has been modified. Please compare files before overwriting the deployed file.");
+                }
+                else {
+                    alert("File has not been deployed for unknown reason.");
+                }
+            }
+            else {
+                publishTargetFileHash = this.response.deployHash;
+            }
+            applyPublished(this.response.hash == this.response.deployHash);
         }
         xhttp.send();
     }
-    function checkIsFilePublished() {
-        if(!currentFilePath || !publishRoot_mirror) {
-            return;
+
+    function applyPublished(isPublished) {
+        if(isPublished) {
+            document.getElementById("publishButton").className = "";
         }
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "isPublished");
-        xhttp.addData("file", currentFilePath);
-        xhttp.onresponse = function() {
-            if(this.responseText == "true") {
-                document.getElementById("publishButton").className = "";
-            }
-            else {
-                document.getElementById("publishButton").className = "unsaved";
-            }
+        else {
+            document.getElementById("publishButton").className = "unsaved";
         }
-        xhttp.send();
     }
 
     function deleteFile(filename, element) {
@@ -278,7 +294,7 @@
     }
 
     function loadFileToEditor(filename, contents) {
-        serverFileContents = contents;
+        targetFileContents = contents;
         codeEditor.setValue(contents);
         codeEditor.setOption("readOnly", contents == "[BINARY FILE]");
         //Get extension
@@ -290,7 +306,6 @@
         codeEditor.setOption("mode", extToCMMode(ext));
         currentFilePath = filename;
         document.getElementById("fileInfo").innerHTML = currentFilePath.replace(root_mirror, "root/");
-        checkIsFilePublished();
     }
 
     function fetchFile(filename) {
@@ -299,7 +314,14 @@
         xhttp.addData("action", "fetch");
         xhttp.addData("file", filename);
         xhttp.onresponse = function() {
-            loadFileToEditor(filename, this.responseText);
+            if(!this.response.success) {
+                alert("Something went wrong with fetching the requested file.");
+                return;
+            }
+            targetFileHash = this.response.hash;
+            publishTargetFileHash = this.response.deployHash;
+            loadFileToEditor(filename, this.response.content);
+            applyPublished(targetFileHash == publishTargetFileHash);
         }
         xhttp.send();
     }
@@ -386,6 +408,7 @@
             if (this.readyState == 4 && this.status == 200) {
                 pr.responseText = this.responseText;
                 pr.responseXML = this.responseXML;
+                pr.response = JSON.parse(this.responseText);
                 pr.onresponse();
             }
         };

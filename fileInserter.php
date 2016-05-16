@@ -36,6 +36,9 @@
             if(isset($newFileTemplate[$ext])) {
                 copy($newFileTemplate[$ext], $targetFileName);
             }
+            else {
+                touch($targetFileName);
+            }
         }
     }
 ?>
