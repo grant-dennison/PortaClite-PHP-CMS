@@ -7,20 +7,9 @@
     else if(isset($target)) {
         $browserRoot = $rootRelative[$target];
     }
-
-    //$browserRoot = "./";
 ?>
 <script>
     var browserRoot_mirror = "<?php echo $browserRoot; ?>";
-
-    /*var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (xhttp.readyState == 4 && xhttp.status == 200) {
-            document.getElementById("rootDirList").innerHTML = xhttp.responseText;
-        }
-    };
-    xhttp.open("GET", "fileBrowser.php?directory=" + browserRoot_mirror, true);
-    xhttp.send();*/
 </script>
 
 <ul class="fileBrowser">
@@ -67,7 +56,7 @@
                             }
                         };
 
-                        var requestURL = "fileBrowser.php";//?target=" + targetForURI + "&directory=" + encodeURIComponent(link);
+                        var requestURL = "fileBrowser.php";
                         var params = "target=" + targetForURI + "&directory=" + encodeURIComponent(link);
                         xhttp.open("POST", requestURL, true);
                         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");

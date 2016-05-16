@@ -2,22 +2,12 @@
     require_once "config.php";
 
     function nextTarget($currentTarget) {
-        global $targets;
-        $i = 0;
-        $targetCount = count($targets);
-        while($i < $targets && $targets[$i] != $currentTarget) {
-            $i++;
+        global $targetChain;
+
+        if(isset($targetChain[$currentTarget])) {
+            return $targetChain[$currentTarget];
         }
-        if($i == $targetCount) {
-            error_log("target $currentTarget not found");
-            return false;
-        }
-        else if($i == $targetCount - 1) {
-            return false;
-        }
-        else {
-            return $targets[$i + 1];
-        }
+        return false;
     }
 
     function ensurePathWithinTarget($path, $target) {

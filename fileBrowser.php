@@ -5,12 +5,7 @@
 
 	ensurePathWithinTarget($searchDirectory, $_REQUEST["target"]);
 
-//	echo "$searchDirectory <br /><br />";
-
-//	$entries = glob("$searchDirectory*");
 	$entries = glob($searchDirectory . '{,.}*', GLOB_BRACE);
-
-//	echo "<ul>";
 
 	$count = count($entries);
 	for($i = 0; $i < $count; $i++) {
@@ -20,6 +15,8 @@
 			$entry = $entry . "/";
 			$entryDisplay = $entryDisplay . "/";
 		}
+
+		//Don't display ./ and ../
 		if($entryDisplay != "./" && $entryDisplay != "../") {
 			echo "<li><a class=\"browserItem\" href=\"".$entry."\">".$entryDisplay."</a></li>";
 		}
@@ -29,6 +26,4 @@
 	if($count == 2) {
 		echo "<li>(empty)</li>";
 	}
-
-//	echo "</ul>";
 ?>
