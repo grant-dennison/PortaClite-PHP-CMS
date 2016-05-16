@@ -10,15 +10,13 @@
     // var mainFileBrowser ind index.php
 
     //File navigation context menu setup
-    var fileLinkContextMenu = contextmenu([
+    var contextMenuOptions = [
         {
             label: "Open Link on current target (" + targetName + ")",
             onclick: function(e) {
                 window.open(interactFilePath.replace(root_mirror, fullRoot_mirror), "_blank")
             }
         },
-        //TODO: only show this menu option if publish target exists
-        //(idea to initialize array outside function call and splice out this element if necessary)
         {
             label: "Open Link on publish target (" + publishTargetName + ")",
             onclick: function(e) {
@@ -80,7 +78,12 @@
                 }
             }
         }
-    ]);
+    ];
+    //If no publish target exists, splice out context menu option to open on publish target
+    if(!publishTargetName) {
+        contextMenuOptions.splice(1, 1);
+    }
+    var fileLinkContextMenu = contextmenu(contextMenuOptions);
 
     //CodeMirror setup
     var codeMirrorContainer = document.getElementById("codeEditor");
