@@ -12,15 +12,17 @@
     //File navigation context menu setup
     var fileLinkContextMenu = contextmenu([
         {
-            label: "Open Link on Beta",
+            label: "Open Link on current target (" + targetName + ")",
             onclick: function(e) {
-                window.open(interactFilePath.replace(root_mirror, fullBetaPath_mirror), "_blank")
+                window.open(interactFilePath.replace(root_mirror, fullRoot_mirror), "_blank")
             }
         },
+        //TODO: only show this menu option if publish target exists
+        //(idea to initialize array outside function call and splice out this element if necessary)
         {
-            label: "Open Link on Live",
+            label: "Open Link on publish target (" + publishTargetName + ")",
             onclick: function(e) {
-                window.open(interactFilePath.replace(root_mirror, fullProductionPath_mirror), "_blank")
+                window.open(interactFilePath.replace(root_mirror, fullPublishRoot_mirror), "_blank")
             }
         },
         {
@@ -74,19 +76,14 @@
                 }
 
                 if(window.confirm(interactFilePath.replace(root_mirror, "root/") + "\n\nAre you sure you want to delete this file?")) {
-                    // console.log("about to delete file");
                     deleteFile(interactFilePath, interactElement);
-                }
-                else {
-                    // console.log("cancelled delete file");
                 }
             }
         }
     ]);
 
     //CodeMirror setup
-    //var scriptTag = document.scripts[document.scripts.length - 1];
-    var codeMirrorContainer = document.getElementById("codeEditor");//scriptTag.parentElement;
+    var codeMirrorContainer = document.getElementById("codeEditor");
     var codeEditor = CodeMirror(codeMirrorContainer, {
         lineNumbers: true,
         matchBrackets: true,
@@ -217,9 +214,6 @@
         xhttp.onresponse = function() {
             serverFileContents = submittingCode;
             checkIsFilePublished();
-            //Run file after saving
-            // var run = new POSTRequest(targetURL(currentFilePath));
-            // run.send();
         }
         xhttp.send();
     }
@@ -240,9 +234,6 @@
         xhttp.addData("file", currentFilePath);
         xhttp.onresponse = function() {
             checkIsFilePublished();
-            //Run file after publishing
-            // var run = new POSTRequest(publishURL(currentFilePath));
-            // run.send();
         }
         xhttp.send();
     }
@@ -405,6 +396,5 @@
         }
         dataString = dataString.substr(0, dataString.length - 1);
         this.xhttp.send(dataString);
-        //this.send(dataString);
     };
 } ());

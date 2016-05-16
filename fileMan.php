@@ -4,19 +4,22 @@
 
     $content = $_POST["content"];
 
-    $target = $_POST["target"];
-    $nextTarget = nextTarget($target);
+    $targetName = $_POST["target"];
+    $targetInfo = $targets[$targetName];
+    if(!$targetInfo) {
+        return;
+    }
+    $nextTargetName = $targetInfo["publishTarget"];
+    $nextTargetInfo = $targets[$nextTargetName];
 
-    $targetRoot = $rootRelative[$target];
+    $targetRoot = $targetInfo["relativePath"];
     $targetFilename = $_POST["file"];
-    ensurePathWithinTarget($targetFilename, $target);
+    ensurePathWithinTarget($targetFilename, $targetName);
 
-    if($nextTarget) {
-        $nextTargetRoot = $rootRelative[$nextTarget];
+    if($nextTargetName) {
+        $nextTargetRoot = $nextTargetInfo["relativePath"];
         $nextTargetFilename = substr_replace($targetFilename, $nextTargetRoot, 0, strlen($targetRoot));
     }
-
-    // error_log("\$targetRoot: $targetRoot\n\$targetFilename: $targetFilename\n\$nextTargetRoot: $nextTargetRoot\n\$nextTargetFilename: $nextTargetFilename");
 
     $action = $_POST["action"];
 
@@ -26,7 +29,7 @@
                 mkdir(dirname($nextTargetFilename), 0755, true);
             }
 
-            ensurePathWithinTarget($nextTargetFilename, $nextTarget);
+            ensurePathWithinTarget($nextTargetFilename, $nextTargetName);
 
             copy($targetFilename, $nextTargetFilename);
             break;
@@ -82,7 +85,7 @@
             }
 
             //Prevent security breach
-            ensurePathWithinTarget($newPath, $target);
+            ensurePathWithinTarget($newPath, $targetName);
 
             rename($targetFilename, $newPath);
             break;

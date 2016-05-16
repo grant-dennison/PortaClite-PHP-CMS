@@ -33,8 +33,8 @@
 
             $ext = pathinfo($targetFileName, PATHINFO_EXTENSION);
 
-            if($ext == "php") {
-                copy($newPHPTemplate, $targetFileName);
+            if(isset($newFileTemplate[$ext])) {
+                copy($newFileTemplate[$ext], $targetFileName);
             }
         }
     }

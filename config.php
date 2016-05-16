@@ -1,21 +1,19 @@
 <?php
-    $targets = ["meta", "beta", "prod"];
+    $targets = [
+        "beta" => [
+            "relativePath" => "../beta/",
+            "absolutePath" => "http://beta.example.com/",
+            "publishTarget" => "live"
+        ],
+        "live" => [
+            "relativePath" => "../production/",
+            "absolutePath" => "http://www.example.com/"
+        ],
+        "meta" => [
+            "relativePath" => "../beta/",
+            "absolutePath" => "https://admin.example.com/"
+        ]
+    ]
 
-    $targetChain = [
-        "beta" => "prod"
-    ];
-
-    $rootRelative = [];
-    $rootAbsolute = [];
-
-    $rootRelative["meta"] = "../";
-    $rootAbsolute["meta"] = "https://admin.example.com/";
-
-    $rootRelative["beta"] = "../beta/";
-    $rootAbsolute["beta"] = "http://beta.example.com/";
-
-    $rootRelative["prod"] = "../production/";
-    $rootAbsolute["prod"] = "http://www.example.com/";
-
-    $newPHPTemplate = $rootRelative["beta"] . "resources/page/default.php";
+    $newFileTemplate["php"] = $rootRelative["beta"] . "resources/page/default.php";
 ?>

@@ -4,8 +4,8 @@
     if(isset($_REQUEST["directory"])) {
         $browserRoot = $_REQUEST["directory"];
     }
-    else if(isset($target)) {
-        $browserRoot = $rootRelative[$target];
+    else if(isset($targetName) && isset($targets[$targetName])) {
+        $browserRoot = $targets[$targetName]["relativePath"];
     }
 ?>
 <script>
@@ -16,7 +16,7 @@
     <script>
         var scriptTag = document.scripts[document.scripts.length - 1];
         var parentFileBrowser = scriptTag.parentElement;
-        var targetForURI = encodeURIComponent("<?php echo $target; ?>");
+        var targetForURI = encodeURIComponent("<?php echo $targetName; ?>");
 
         parentFileBrowser.addEventListener("click", function(e) {
             var linkElement = e.target;
