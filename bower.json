@@ -1,0 +1,27 @@
+{
+  "name": "portaclite",
+  "homepage": "https://github.com/grant-dennison/PortaClite-PHP-CMS",
+  "authors": [
+    "Grant Dennison <grant.dennison@gmail.com>"
+  ],
+  "description": "Simple PHP CMS",
+  "main": "CMSView.php",
+  "keywords": [
+    "PHP",
+    "CMS"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "contextmenu": "aantthony/contextmenu#^1.0.0",
+    "codemirror": "CodeMirror#^5.14.2",
+    "jsdiff": "^2.2.2",
+    "dropzone": "^4.3.0"
+  }
+}

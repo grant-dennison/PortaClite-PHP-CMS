@@ -40,23 +40,24 @@
     <!-- <script src="jquery-1.12.0.min.js"></script> -->
 
     <!-- Dropzone -->
-    <script src="dropzone/dropzone.js"></script>
-    <link rel="stylesheet" href="dropzone/dropzone.css">
+    <script src="bower_components/dropzone/dist/min/dropzone.min.js"></script>
+    <link rel="stylesheet" href="bower_components/dropzone/dist/min/dropzone.min.css">
 
     <!-- ContextMenu -->
-    <link rel="stylesheet" href="contextmenu/contextmenu.css">
-    <script src="contextmenu/contextmenu.js"></script>
+    <link rel="stylesheet" href="bower_components/contextmenu/contextmenu.css">
+    <script src="bower_components/contextmenu/contextmenu.js"></script>
 
     <!-- CodeMirror -->
-    <link rel="stylesheet" href="codemirror-5.8/lib/codemirror.css">
-    <script src="codemirror-5.8/lib/codemirror.js"></script>
-    <script src="codemirror-5.8/addon/edit/matchbrackets.js"></script>
-    <script src="codemirror-5.8/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="codemirror-5.8/mode/xml/xml.js"></script>
-    <script src="codemirror-5.8/mode/javascript/javascript.js"></script>
-    <script src="codemirror-5.8/mode/css/css.js"></script>
-    <script src="codemirror-5.8/mode/clike/clike.js"></script>
-    <script src="codemirror-5.8/mode/php/php.js"></script>
+    <link rel="stylesheet" href="bower_components/codemirror/lib/codemirror.css">
+    <script src="bower_components/codemirror/lib/codemirror.js"></script>
+    <script src="bower_components/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="bower_components/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+    <script src="bower_components/codemirror/mode/sql/sql.js"></script>
+    <script src="bower_components/codemirror/mode/xml/xml.js"></script>
+    <script src="bower_components/codemirror/mode/javascript/javascript.js"></script>
+    <script src="bower_components/codemirror/mode/css/css.js"></script>
+    <script src="bower_components/codemirror/mode/clike/clike.js"></script>
+    <script src="bower_components/codemirror/mode/php/php.js"></script>
 
     <script>
         var serveTarget = encodeURIComponent("<?php echo $target; ?>");
@@ -119,7 +120,7 @@
         </form>
     </div>
 
-    <script src="codemirror-ext/mode-converter.js"></script>
+    <script src="codemirror-ext.js"></script>
     <script src="CMSController.js"></script>
 </body>
 </html>

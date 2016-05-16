@@ -1,0 +1,15 @@
+{
+  "name": "contextmenu",
+  "homepage": "https://github.com/aantthony/contextmenu",
+  "version": "1.0.0",
+  "_release": "1.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.0",
+    "commit": "97247ad09be481466867808abfc4b7878e50fa73"
+  },
+  "_source": "git://github.com/aantthony/contextmenu.git",
+  "_target": "^1.0.0",
+  "_originalSource": "aantthony/contextmenu",
+  "_direct": true
+}
