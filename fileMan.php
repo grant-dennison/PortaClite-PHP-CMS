@@ -75,11 +75,11 @@
             break;
         }
         case "diff": {
-            if(filesize($targetFilename) > 100000000) {
+            if(filesize($nextTargetFilename) > 100000000) {
                 $response["contentNextTarget"] = $probablyBinaryDisplay;
             }
             else {
-                $contentsNextTarget = file_get_contents($targetFilename);
+                $contentsNextTarget = file_get_contents($nextTargetFilename);
 
                 //check to see if the mime-type starts with 'text'
                 if(substr(finfo_file($finfo, $nextTargetFilename), 0, 4) == 'text' || $contentsNextTarget == '' || ctype_space($contentsNextTarget)) {

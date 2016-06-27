@@ -510,7 +510,7 @@
             if (this.readyState == 4 && this.status == 200) {
                 pr.responseText = this.responseText;
                 pr.responseXML = this.responseXML;
-                pr.response = JSON.parse(this.responseText);
+                pr.response = this.responseText ? JSON.parse(this.responseText) : {};
                 pr.onresponse();
             }
         };
