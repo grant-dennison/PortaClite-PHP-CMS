@@ -311,9 +311,9 @@
     }
 
     function diffFiles(content1, content2) {
-        var diffLines = JsDiff['diffWords'](content1, content2);
+        var diff = JsDiff['diffWords'](content1, content2);
         var fragment = document.createDocumentFragment();
-        for (var i=0; i < diffLines.length; i++) {
+        for (var i=0; i < diff.length; i++) {
 
             if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
                 var swap = diff[i];
@@ -359,7 +359,7 @@
                     remote += " (modified)";
                 }
             }
-            diffFiles(local, remote);
+            diffFiles(remote, local);
 
             targetFileHash = this.response.hash;
             publishTargetFileHash = this.response.deployHash;
@@ -386,7 +386,7 @@
                     remote += " (modified)";
                 }
             }
-            diffFiles(local, remote);
+            diffFiles(remote, local);
 
             targetFileHash = this.response.hash;
             publishTargetFileHash = this.response.deployHash;
