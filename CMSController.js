@@ -122,6 +122,7 @@
     });
     document.getElementById("diffLocalButton").addEventListener("click", function(e) {
         diffLocal();
+        toggleHighlightButton("diffLocalButton", false);
         e.preventDefault();
     });
     if(publishRoot_mirror) {
@@ -131,6 +132,7 @@
         });
         document.getElementById("diffPublishButton").addEventListener("click", function(e) {
             diffPublish();
+            toggleHighlightButton("diffPublishButton", false);
             e.preventDefault();
         });
     }
@@ -139,6 +141,8 @@
     mainFileBrowser.addEventListener("clicklink", function(e) {
         if(!e.detail.isDir && (isSaved() || window.confirm("There are unsaved changes in the open file.\nAre you sure you want to discard these changes?"))) {
             fetchFile(e.detail.path);
+            toggleHighlightButton("diffLocalButton", false);
+            toggleHighlightButton("diffPublishButton", false);
             e.preventDefault();
         }
     });
@@ -235,6 +239,7 @@
         xhttp.onresponse = function() {
             if(!this.response.success) {
                 alert("The file on the server has been modified by another user since you opened it. Please compare your working copy with the server copy before overwriting it.")
+                toggleHighlightButton("diffLocalButton", true);
             }
             else { //on success
                 targetFileHash = this.response.hash;
@@ -266,10 +271,12 @@
         xhttp.onresponse = function() {
             if(this.response.hash != targetFileHash) {
                 alert("The file you are trying to deploy has been modified since you last viewed it. \n\rFile not deployed.");
+                toggleHighlightButton("diffLocalButton", true);
             }
             else if(this.response.deployHash != targetFileHash) {
                 if(this.response.deployHash != publishTargetFileHash) {
                     alert("The deployed file has been modified. Please compare files before overwriting the deployed file.");
+                    toggleHighlightButton("diffPublishButton", true);
                 }
                 else {
                     alert("File has not been deployed for unknown reason.");
@@ -289,6 +296,15 @@
         }
         else {
             document.getElementById("publishButton").className = "unsaved";
+        }
+    }
+
+    function toggleHighlightButton(buttonId, isHighlighted) {
+        if(isHighlighted) {
+            document.getElementById(buttonId).className = "unsaved";
+        }
+        else {
+            document.getElementById(buttonId).className = "";
         }
     }
 
@@ -342,6 +358,10 @@
     }
 
     function diffLocal() {
+        if(!currentFilePath) {
+            return;
+        }
+
         var xhttp = new POSTRequest("fileMan.php");
         xhttp.addData("target", serveTarget);
         xhttp.addData("action", "fetch");
@@ -369,6 +389,10 @@
     }
 
     function diffPublish() {
+        if(!currentFilePath) {
+            return;
+        }
+
         var xhttp = new POSTRequest("fileMan.php");
         xhttp.addData("target", serveTarget);
         xhttp.addData("action", "diff");

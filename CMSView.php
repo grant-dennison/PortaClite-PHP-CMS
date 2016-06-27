@@ -86,11 +86,11 @@
     </head>
     <body>
         <div id="SiteNavigationBar" class="clearfix">
+            <a id="diffLocalButton" href="#">Diff Local/Saved</a>
             <a id="saveButton" href="#">Save</a>
-            <a id="diffLocalButton" href="#">Diff Local</a>
             <?php if($targetInfo["publishTarget"]) : ?>
+                <a id="diffPublishButton" href="#">Diff Saved/Published</a>
                 <a id="publishButton" href="#">Publish</a>
-                <a id="diffPublishButton" href="#">Diff Publish</a>
             <?php endif; ?>
         </div>
 
