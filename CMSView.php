@@ -115,14 +115,14 @@
             <p id="fileInfo">No file opened</p>
         </div>
 
-        <div id="DropZoneBack" style="visibility: hidden; position: absolute; z-index: 10; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(50, 50, 50, .5)">
+        <div id="DropZoneBack" class="backdrop">
             <form id="DropZoneContainer" class="dropzone"
             style="position:relative; top: 50%; left: 50%; width: 400px; height: 300px; margin-left: -200px; margin-top: -150px;">
             </form>
         </div>
 
-        <div id="DiffBack" style="visibility: hidden; position: absolute; z-index: 10; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(50, 50, 50, .5)">
-            <div id="DiffView" style="position:relative; top: 50%; left: 50%; width: 400px; height: 300px; margin-left: -200px; margin-top: -150px; background-color: white; font-family: 'Lucida Console', Monaco, monospace"></div>
+        <div id="DiffBack" class="backdrop">
+            <pre id="DiffView"></pre>
         </div>
 
         <script src="codemirror-ext.js"></script>
