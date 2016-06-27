@@ -16,4 +16,6 @@
     ];
 
     $newFileTemplate["php"] = $targets["beta"]["relativePath"] . "resources/page/default.php";
+
+    $probablyBinaryDisplay = "[BINARY FILE]";
 ?>

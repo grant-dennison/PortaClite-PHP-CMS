@@ -120,9 +120,17 @@
         saveFile();
         e.preventDefault();
     });
+    document.getElementById("diffLocalButton").addEventListener("click", function(e) {
+        diffLocal();
+        e.preventDefault();
+    });
     if(publishRoot_mirror) {
         document.getElementById("publishButton").addEventListener("click", function(e) {
             publishFile();
+            e.preventDefault();
+        });
+        document.getElementById("diffPublishButton").addEventListener("click", function(e) {
+            diffPublish();
             e.preventDefault();
         });
     }
@@ -163,6 +171,7 @@
         data.append("target", serveTarget);
     });
 
+    //Hide dropzone on click backdrop
     dropZoneBack.addEventListener("click", function(e) {
         if(e.target == dropZoneBack) {
             dropZoneBack.style.visibility = "hidden";
@@ -171,6 +180,14 @@
                 insertToFileBrowser(zone.files[i].name, interactFilePath, insertParentList);
             }
             zone.removeAllFiles();
+        }
+    });
+
+    //Hide diff on click backdrop
+    var diffBack = document.getElementById("DiffBack");
+    diffBack.addEventListener("click", function(e) {
+        if(e.target == diffBack) {
+            diffBack.style.visibility = "hidden";
         }
     });
 
@@ -206,7 +223,7 @@
             }
         }
 
-        var submittingCode = codeEditor.getValue()
+        var submittingCode = codeEditor.getValue();
 
         var xhttp = new POSTRequest("fileMan.php");
         xhttp.addData("target", serveTarget);
@@ -293,10 +310,95 @@
         xhttp.send();
     }
 
+    function diffFiles(content1, content2) {
+        var diffLines = JsDiff['diffWords'](content1, content2);
+        var fragment = document.createDocumentFragment();
+        for (var i=0; i < diffLines.length; i++) {
+
+            if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
+                var swap = diff[i];
+                diff[i] = diff[i + 1];
+                diff[i + 1] = swap;
+            }
+
+            var node;
+            if (diff[i].removed) {
+                node = document.createElement('del');
+                node.appendChild(document.createTextNode(diff[i].value));
+            } else if (diff[i].added) {
+                node = document.createElement('ins');
+                node.appendChild(document.createTextNode(diff[i].value));
+            } else {
+                node = document.createTextNode(diff[i].value);
+            }
+            fragment.appendChild(node);
+        }
+        var result = document.getElementById("DiffView");
+
+        result.textContent = '';
+        result.appendChild(fragment);
+
+        document.getElementById("DiffBack").style.visibility = "visible";
+    }
+
+    function diffLocal() {
+        var xhttp = new POSTRequest("fileMan.php");
+        xhttp.addData("target", serveTarget);
+        xhttp.addData("action", "fetch");
+        xhttp.addData("file", currentFilePath);
+        xhttp.onresponse = function() {
+            if(!this.response.success) {
+                alert("Something went wrong with preparing the diff for the requested file.");
+                return;
+            }
+
+            var local = codeEditor.getValue();
+            var remote = this.response.content;
+            if(local == probablyBinaryDisplay && remote == probablyBinaryDisplay) {
+                if(targetFileHash != this.response.hash) {
+                    remote += " (modified)";
+                }
+            }
+            diffFiles(local, remote);
+
+            targetFileHash = this.response.hash;
+            publishTargetFileHash = this.response.deployHash;
+            applyPublished(targetFileHash == publishTargetFileHash);
+        }
+        xhttp.send();
+    }
+
+    function diffPublish() {
+        var xhttp = new POSTRequest("fileMan.php");
+        xhttp.addData("target", serveTarget);
+        xhttp.addData("action", "diff");
+        xhttp.addData("file", currentFilePath);
+        xhttp.onresponse = function() {
+            if(!this.response.success) {
+                alert("Something went wrong with preparing the diff for the requested file.");
+                return;
+            }
+
+            var local = this.response.content;
+            var remote = this.response.contentNextTarget;
+            if(local == probablyBinaryDisplay && remote == probablyBinaryDisplay) {
+                if(targetFileHash != this.response.hash) {
+                    remote += " (modified)";
+                }
+            }
+            diffFiles(local, remote);
+
+            targetFileHash = this.response.hash;
+            publishTargetFileHash = this.response.deployHash;
+            applyPublished(targetFileHash == publishTargetFileHash);
+        }
+        xhttp.send();
+    }
+
     function loadFileToEditor(filename, contents) {
         targetFileContents = contents;
         codeEditor.setValue(contents);
-        codeEditor.setOption("readOnly", contents == "[BINARY FILE]");
+        codeEditor.setOption("readOnly", contents == probablyBinaryDisplay);
         //Get extension
         var extResult = /[^\/]+\.([^\/\.]+)/.exec(filename);
         var ext = "default";

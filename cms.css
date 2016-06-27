@@ -166,3 +166,14 @@ td {
     z-index: 10;
     background-color: lightgray;
 }
+
+del {
+	text-decoration: none;
+	color: red;
+	background: pink;
+}
+ins {
+	background: lightgreen;
+	color: green;
+	text-decoration: none;
+}

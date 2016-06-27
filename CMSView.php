@@ -53,7 +53,12 @@
         <script src="bower_components/codemirror/mode/clike/clike.js"></script>
         <script src="bower_components/codemirror/mode/php/php.js"></script>
 
+        <!-- JSDiff -->
+        <script src="bower_components/jsdiff/diff.min.js"></script>
+
         <script>
+        var probablyBinaryDisplay = "<?php echo $probablyBinaryDisplay; ?>";
+
         var serveTarget = encodeURIComponent("<?php echo $targetName; ?>");
         var targetName = "<?php echo $targetName; ?>";
         var root_mirror = "<?php echo $targetInfo["relativePath"]; ?>";
@@ -82,8 +87,10 @@
     <body>
         <div id="SiteNavigationBar" class="clearfix">
             <a id="saveButton" href="#">Save</a>
+            <a id="diffLocalButton" href="#">Diff Local</a>
             <?php if($targetInfo["publishTarget"]) : ?>
                 <a id="publishButton" href="#">Publish</a>
+                <a id="diffPublishButton" href="#">Diff Publish</a>
             <?php endif; ?>
         </div>
 
@@ -112,6 +119,10 @@
             <form id="DropZoneContainer" class="dropzone"
             style="position:relative; top: 50%; left: 50%; width: 400px; height: 300px; margin-left: -200px; margin-top: -150px;">
             </form>
+        </div>
+
+        <div id="DiffBack" style="visibility: hidden; position: absolute; z-index: 10; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(50, 50, 50, .5)">
+            <div id="DiffView" style="position:relative; top: 50%; left: 50%; width: 400px; height: 300px; margin-left: -200px; margin-top: -150px;"></div>
         </div>
 
         <script src="codemirror-ext.js"></script>

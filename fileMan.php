@@ -25,6 +25,9 @@
 
     $response = [];
 
+    // return mime type ala mimetype extension
+    $finfo = finfo_open(FILEINFO_MIME);
+
     switch($action) {
         case "publish": {
             if (!file_exists(dirname($nextTargetFilename))) {
@@ -71,11 +74,26 @@
             deleteFile($targetFilename);
             break;
         }
-        case "fetch": {
-            // return mime type ala mimetype extension
-            $finfo = finfo_open(FILEINFO_MIME);
-            $probablyBinaryDisplay = "[BINARY FILE]";
+        case "diff": {
+            if(filesize($targetFilename) > 100000000) {
+                $response["contentNextTarget"] = $probablyBinaryDisplay;
+            }
+            else {
+                $contentsNextTarget = file_get_contents($targetFilename);
 
+                //check to see if the mime-type starts with 'text'
+                if(substr(finfo_file($finfo, $nextTargetFilename), 0, 4) == 'text' || $contentsNextTarget == '' || ctype_space($contentsNextTarget)) {
+                    if (!file_exists($nextTargetFilename)) {
+                        touch($nextTargetFilename);
+                    }
+                    $response["contentNextTarget"] =  $contentsNextTarget;
+                }
+                else {
+                    $response["contentNextTarget"] = $probablyBinaryDisplay;
+                }
+            }
+        }
+        case "fetch": {
             if(filesize($targetFilename) > 100000000) {
                 $response["content"] = $probablyBinaryDisplay;
             }
