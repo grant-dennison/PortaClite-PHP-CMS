@@ -34,7 +34,7 @@
             ensurePathWithinTarget($nextTargetFilename, $nextTargetName);
 
             $targetFile = fopen($targetFilename, "r");
-            $nextTargetFile = fopen($nextTargetFilename, "w");
+            $nextTargetFile = fopen($nextTargetFilename, "c");
             //I don't think order matters here since there shouldn't be any cycles
             flock($targetFile, LOCK_SH);
             flock($nextTargetFile, LOCK_EX);
@@ -54,14 +54,15 @@
             break;
         }
         case "save": {
-            $file = fopen($targetFilename, "w") or die("Unable to open file |".$targetFilename."|!");
+            $file = fopen($targetFilename, "c") or die("Unable to open file |".$targetFilename."|!");
             flock($file, LOCK_EX);
             if(sha1_file($targetFilename) == $_POST["hash"]) {
+                ftruncate($file, 0);
                 fwrite($file, $content);
-                $response["hash"] = sha1_file($targetFilename);
-                $response["deployHash"] = sha1_file($nextTargetFilename);
                 $response["success"] = true;
             }
+            $response["hash"] = sha1_file($targetFilename);
+            $response["deployHash"] = sha1_file($nextTargetFilename);
             flock($file, LOCK_UN);
             fclose($file);
             break;
@@ -92,6 +93,7 @@
                     $response["content"] = $probablyBinaryDisplay;
                 }
             }
+            $response["success"] = true;
             $response["hash"] = sha1_file($targetFilename);
             $response["deployHash"] = sha1_file($nextTargetFilename);
             break;

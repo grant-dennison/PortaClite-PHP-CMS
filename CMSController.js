@@ -216,7 +216,7 @@
         //Pass the hash of the unmodified file back to the server
         xhttp.addData("hash", targetFileHash);
         xhttp.onresponse = function() {
-            if(!this.reponse.success) {
+            if(!this.response.success) {
                 alert("The file on the server has been modified by another user since you opened it. Please compare your working copy with the server copy before overwriting it.")
             }
             else { //on success
