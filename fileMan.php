@@ -133,6 +133,7 @@
     echo json_encode($response);
 
     function deleteFile($filename) {
+        global $response;
         if(!file_exists($filename)) {
             return false;
         }
@@ -149,12 +150,10 @@
                 }
             }
             rmdir($dir);
-            echo "successfully deleted $dir\n";
+            $response["success"] = true;
         }
         else {
-            if(unlink($filename)) {
-                echo "successfully deleted $filename\n";
-            }
+            $response["success"] = unlink($filename);
         }
     }
 ?>
