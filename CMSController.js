@@ -440,7 +440,7 @@
 
     function loadFileToEditor(filename, contents) {
         targetFileContents = contents;
-        codeEditor.setValue(contents);
+        codeEditor.setValue(contents || "");
         codeEditor.setOption("readOnly", contents == probablyBinaryDisplay);
         //Get extension
         var extResult = /[^\/]+\.([^\/\.]+)/.exec(filename);
