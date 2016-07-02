@@ -137,6 +137,22 @@
         });
     }
 
+    window.onbeforeunload = function (e) {
+        if(isSaved()) {
+            return;
+        }
+
+        var message = "There are unsaved changes in the open file.\nAre you sure you want to discard these changes?",
+        e = e || window.event;
+        // For IE and Firefox
+        if (e) {
+            e.returnValue = message;
+        }
+
+        // For Safari
+        return message;
+    };
+
     //mainFileBrowser declared/initialized in global scope of index.php
     mainFileBrowser.addEventListener("clicklink", function(e) {
         if(!e.detail.isDir && (isSaved() || window.confirm("There are unsaved changes in the open file.\nAre you sure you want to discard these changes?"))) {
@@ -327,7 +343,7 @@
     }
 
     function diffFiles(content1, content2) {
-        var diff = JsDiff['diffWords'](content1, content2);
+        var diff = JsDiff['diffChars'](content1, content2);
         var fragment = document.createDocumentFragment();
         for (var i=0; i < diff.length; i++) {
 
@@ -336,6 +352,9 @@
                 diff[i] = diff[i + 1];
                 diff[i + 1] = swap;
             }
+
+            //Add carriage return symbols
+            diff[i].value = diff[i].value.replace(/\n/g, "\u21B5\n");
 
             var node;
             if (diff[i].removed) {
