@@ -10,7 +10,7 @@
             "absolutePath" => "http://www.example.com/"
         ],
         "meta" => [
-            "relativePath" => "../beta/",
+            "relativePath" => "./",
             "absolutePath" => "https://admin.example.com/"
         ]
     ];
