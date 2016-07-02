@@ -5,7 +5,9 @@
     var interactFileIsDir;
     var interactElement; //HTML link interacted with
     var insertParentList;
-    var serverFileContents;
+    var targetFileContents;
+    var targetFileHash;
+    var publishTargetFileHash;
     // var fileBrowsers in index.php
     // var mainFileBrowser ind index.php
 
@@ -118,17 +120,45 @@
         saveFile();
         e.preventDefault();
     });
+    document.getElementById("diffLocalButton").addEventListener("click", function(e) {
+        diffLocal();
+        toggleHighlightButton("diffLocalButton", false);
+        e.preventDefault();
+    });
     if(publishRoot_mirror) {
         document.getElementById("publishButton").addEventListener("click", function(e) {
             publishFile();
             e.preventDefault();
         });
+        document.getElementById("diffPublishButton").addEventListener("click", function(e) {
+            diffPublish();
+            toggleHighlightButton("diffPublishButton", false);
+            e.preventDefault();
+        });
     }
+
+    window.onbeforeunload = function (e) {
+        if(isSaved()) {
+            return;
+        }
+
+        var message = "There are unsaved changes in the open file.\nAre you sure you want to discard these changes?",
+        e = e || window.event;
+        // For IE and Firefox
+        if (e) {
+            e.returnValue = message;
+        }
+
+        // For Safari
+        return message;
+    };
 
     //mainFileBrowser declared/initialized in global scope of index.php
     mainFileBrowser.addEventListener("clicklink", function(e) {
         if(!e.detail.isDir && (isSaved() || window.confirm("There are unsaved changes in the open file.\nAre you sure you want to discard these changes?"))) {
             fetchFile(e.detail.path);
+            toggleHighlightButton("diffLocalButton", false);
+            toggleHighlightButton("diffPublishButton", false);
             e.preventDefault();
         }
     });
@@ -161,6 +191,7 @@
         data.append("target", serveTarget);
     });
 
+    //Hide dropzone on click backdrop
     dropZoneBack.addEventListener("click", function(e) {
         if(e.target == dropZoneBack) {
             dropZoneBack.style.visibility = "hidden";
@@ -172,13 +203,18 @@
         }
     });
 
+    //Hide diff on click backdrop
+    var diffBack = document.getElementById("DiffBack");
+    diffBack.addEventListener("click", function(e) {
+        if(e.target == diffBack) {
+            diffBack.style.visibility = "hidden";
+        }
+    });
+
     //Periodically check if work is unsaved
     setInterval(function() {
-        if(!currentFilePath) {
-            return;
-        }
         var saveButton = document.getElementById("saveButton");
-        if(codeEditor.getValue() === serverFileContents) {
+        if(isSaved()) {
             saveButton.className = "";
         }
         else {
@@ -202,21 +238,32 @@
         }
 
         if(!publishRoot_mirror) {
-            if(!confirm("You are about to make a change directly to the live site.\nAre you sure you want to continue?")) {
+            if(!confirm("You are about to make a change directly to an end deployment target.\nAre you sure you want to continue?")) {
                 return;
             }
         }
 
-        var submittingCode = codeEditor.getValue()
+        var submittingCode = codeEditor.getValue();
 
         var xhttp = new POSTRequest("fileMan.php");
         xhttp.addData("target", serveTarget);
         xhttp.addData("action", "save");
         xhttp.addData("file", currentFilePath);
         xhttp.addData("content", submittingCode);
+        //Pass the hash of the unmodified file back to the server
+        xhttp.addData("hash", targetFileHash);
         xhttp.onresponse = function() {
-            serverFileContents = submittingCode;
-            checkIsFilePublished();
+            if(!this.response.success) {
+                alert("The file on the server has been modified by another user since you opened it. Please compare your working copy with the server copy before overwriting it.")
+                toggleHighlightButton("diffLocalButton", true);
+            }
+            else { //on success
+                targetFileHash = this.response.hash;
+                targetFileContents = submittingCode;
+            }
+
+            applyPublished(this.response.hash === this.response.deployHash);
+            publishTargetFileHash = this.response.deployHash;
         }
         xhttp.send();
     }
@@ -224,7 +271,7 @@
         if(!currentFilePath) {
             return true;
         }
-        return codeEditor.getValue() === serverFileContents;
+        return codeEditor.getValue() === targetFileContents;
     }
 
     function publishFile() {
@@ -235,28 +282,46 @@
         xhttp.addData("target", serveTarget);
         xhttp.addData("action", "publish");
         xhttp.addData("file", currentFilePath);
+        xhttp.addData("hash", targetFileHash);
+        xhttp.addData("deployHash", publishTargetFileHash);
         xhttp.onresponse = function() {
-            checkIsFilePublished();
+            if(this.response.hash != targetFileHash) {
+                alert("The file you are trying to deploy has been modified since you last viewed it. \n\rFile not deployed.");
+                toggleHighlightButton("diffLocalButton", true);
+            }
+            else if(this.response.deployHash != targetFileHash) {
+                if(this.response.deployHash != publishTargetFileHash) {
+                    alert("The deployed file has been modified. Please compare files before overwriting the deployed file.");
+                    toggleHighlightButton("diffPublishButton", true);
+                }
+                else {
+                    alert("File has not been deployed for unknown reason.");
+                }
+            }
+            else {
+                publishTargetFileHash = this.response.deployHash;
+            }
+            applyPublished(this.response.hash == this.response.deployHash);
         }
         xhttp.send();
     }
-    function checkIsFilePublished() {
-        if(!currentFilePath || !publishRoot_mirror) {
-            return;
+
+    function applyPublished(isPublished) {
+        if(isPublished) {
+            document.getElementById("publishButton").className = "";
         }
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "isPublished");
-        xhttp.addData("file", currentFilePath);
-        xhttp.onresponse = function() {
-            if(this.responseText == "true") {
-                document.getElementById("publishButton").className = "";
-            }
-            else {
-                document.getElementById("publishButton").className = "unsaved";
-            }
+        else {
+            document.getElementById("publishButton").className = "unsaved";
         }
-        xhttp.send();
+    }
+
+    function toggleHighlightButton(buttonId, isHighlighted) {
+        if(isHighlighted) {
+            document.getElementById(buttonId).className = "unsaved";
+        }
+        else {
+            document.getElementById(buttonId).className = "";
+        }
     }
 
     function deleteFile(filename, element) {
@@ -277,10 +342,106 @@
         xhttp.send();
     }
 
+    function diffFiles(content1, content2) {
+        var diff = JsDiff['diffChars'](content1, content2);
+        var fragment = document.createDocumentFragment();
+        for (var i=0; i < diff.length; i++) {
+
+            if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
+                var swap = diff[i];
+                diff[i] = diff[i + 1];
+                diff[i + 1] = swap;
+            }
+
+            //Add carriage return symbols
+            diff[i].value = diff[i].value.replace(/\n/g, "\u21B5\n");
+
+            var node;
+            if (diff[i].removed) {
+                node = document.createElement('del');
+                node.appendChild(document.createTextNode(diff[i].value));
+            } else if (diff[i].added) {
+                node = document.createElement('ins');
+                node.appendChild(document.createTextNode(diff[i].value));
+            } else {
+                node = document.createTextNode(diff[i].value);
+            }
+            fragment.appendChild(node);
+        }
+        var result = document.getElementById("DiffView");
+
+        result.textContent = '';
+        result.appendChild(fragment);
+
+        document.getElementById("DiffBack").style.visibility = "visible";
+    }
+
+    function diffLocal() {
+        if(!currentFilePath) {
+            return;
+        }
+
+        var xhttp = new POSTRequest("fileMan.php");
+        xhttp.addData("target", serveTarget);
+        xhttp.addData("action", "fetch");
+        xhttp.addData("file", currentFilePath);
+        xhttp.onresponse = function() {
+            if(!this.response.success) {
+                alert("Something went wrong with preparing the diff for the requested file.");
+                return;
+            }
+
+            var local = codeEditor.getValue();
+            var remote = this.response.content;
+            if(local == probablyBinaryDisplay && remote == probablyBinaryDisplay) {
+                if(targetFileHash != this.response.hash) {
+                    remote += " (modified)";
+                }
+            }
+            diffFiles(remote, local);
+
+            targetFileHash = this.response.hash;
+            publishTargetFileHash = this.response.deployHash;
+            applyPublished(targetFileHash == publishTargetFileHash);
+        }
+        xhttp.send();
+    }
+
+    function diffPublish() {
+        if(!currentFilePath) {
+            return;
+        }
+
+        var xhttp = new POSTRequest("fileMan.php");
+        xhttp.addData("target", serveTarget);
+        xhttp.addData("action", "diff");
+        xhttp.addData("file", currentFilePath);
+        xhttp.onresponse = function() {
+            if(!this.response.success) {
+                alert("Something went wrong with preparing the diff for the requested file.");
+                return;
+            }
+
+            var local = this.response.content;
+            var remote = this.response.contentNextTarget;
+            if(local == probablyBinaryDisplay && remote == probablyBinaryDisplay) {
+                if(targetFileHash != this.response.hash) {
+                    remote += " (modified)";
+                }
+            }
+            diffFiles(remote, local);
+
+            targetFileHash = this.response.hash;
+            publishTargetFileHash = this.response.deployHash;
+            applyPublished(targetFileHash == publishTargetFileHash);
+        }
+        xhttp.send();
+    }
+
     function loadFileToEditor(filename, contents) {
-        serverFileContents = contents;
+        targetFileContents = contents;
         codeEditor.setValue(contents);
-        codeEditor.setOption("readOnly", contents == "[BINARY FILE]");
+        codeEditor.setOption("readOnly", contents == probablyBinaryDisplay);
         //Get extension
         var extResult = /[^\/]+\.([^\/\.]+)/.exec(filename);
         var ext = "default";
@@ -290,7 +451,6 @@
         codeEditor.setOption("mode", extToCMMode(ext));
         currentFilePath = filename;
         document.getElementById("fileInfo").innerHTML = currentFilePath.replace(root_mirror, "root/");
-        checkIsFilePublished();
     }
 
     function fetchFile(filename) {
@@ -299,7 +459,14 @@
         xhttp.addData("action", "fetch");
         xhttp.addData("file", filename);
         xhttp.onresponse = function() {
-            loadFileToEditor(filename, this.responseText);
+            if(!this.response.success) {
+                alert("Something went wrong with fetching the requested file.");
+                return;
+            }
+            targetFileHash = this.response.hash;
+            publishTargetFileHash = this.response.deployHash;
+            loadFileToEditor(filename, this.response.content);
+            applyPublished(targetFileHash == publishTargetFileHash);
         }
         xhttp.send();
     }
@@ -386,6 +553,7 @@
             if (this.readyState == 4 && this.status == 200) {
                 pr.responseText = this.responseText;
                 pr.responseXML = this.responseXML;
+                pr.response = this.responseText ? JSON.parse(this.responseText) : {};
                 pr.onresponse();
             }
         };

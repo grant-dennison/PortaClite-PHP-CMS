@@ -10,10 +10,12 @@
             "absolutePath" => "http://www.example.com/"
         ],
         "meta" => [
-            "relativePath" => "../beta/",
+            "relativePath" => "./",
             "absolutePath" => "https://admin.example.com/"
         ]
     ];
 
     $newFileTemplate["php"] = $targets["beta"]["relativePath"] . "resources/page/default.php";
+
+    $probablyBinaryDisplay = "[BINARY FILE]";
 ?>
