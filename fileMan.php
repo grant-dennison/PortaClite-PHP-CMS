@@ -114,6 +114,9 @@
             $response["success"] = true;
             $response["hash"] = sha1_file($targetFilename);
             $response["deployHash"] = sha1_file($nextTargetFilename);
+            if(!$response["deployHash"]) {
+                $response["deployHash"] = sha1("");
+            }
             break;
         }
         case "move": {

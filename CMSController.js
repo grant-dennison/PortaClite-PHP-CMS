@@ -307,6 +307,9 @@
     }
 
     function applyPublished(isPublished) {
+        if(!publishTargetName) {
+            return;
+        }
         if(isPublished) {
             document.getElementById("publishButton").className = "";
         }
@@ -316,11 +319,15 @@
     }
 
     function toggleHighlightButton(buttonId, isHighlighted) {
+        var button = document.getElementById(buttonId);
+        if(!button) {
+            return;
+        }
         if(isHighlighted) {
-            document.getElementById(buttonId).className = "unsaved";
+            button.className = "unsaved";
         }
         else {
-            document.getElementById(buttonId).className = "";
+            button.className = "";
         }
     }
 
