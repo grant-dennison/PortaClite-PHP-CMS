@@ -65,7 +65,12 @@
                 $response["success"] = true;
             }
             $response["hash"] = sha1_file($targetFilename);
-            $response["deployHash"] = sha1_file($nextTargetFilename);
+            if($nextTargetFilename) {
+                $response["deployHash"] = sha1_file($nextTargetFilename);
+                if(!$response["deployHash"]) {
+                    $response["deployHash"] = sha1("");
+                }
+            }
             flock($file, LOCK_UN);
             fclose($file);
             break;
@@ -113,9 +118,11 @@
             }
             $response["success"] = true;
             $response["hash"] = sha1_file($targetFilename);
-            $response["deployHash"] = sha1_file($nextTargetFilename);
-            if(!$response["deployHash"]) {
-                $response["deployHash"] = sha1("");
+            if($nextTargetFilename) {
+                $response["deployHash"] = sha1_file($nextTargetFilename);
+                if(!$response["deployHash"]) {
+                    $response["deployHash"] = sha1("");
+                }
             }
             break;
         }
