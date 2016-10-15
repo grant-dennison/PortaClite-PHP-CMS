@@ -3,7 +3,7 @@
 
     function getJSONParams() {
         $json = file_get_contents('php://input');
-        return json_decode($json);
+        return json_decode($json, true);
     }
 
     function ensurePathWithinTarget($path, $targetName) {
