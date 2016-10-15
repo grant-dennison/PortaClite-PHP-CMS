@@ -1,9 +1,11 @@
 <?php
 	require_once "helperFunctions.php";
 
-	$searchDirectory = $_REQUEST["directory"];
+	$request = getJSONParams();
 
-	ensurePathWithinTarget($searchDirectory, $_REQUEST["target"]);
+	$searchDirectory = $request["directory"];
+
+	ensurePathWithinTarget($searchDirectory, $request["target"]);
 
 	$entries = glob($searchDirectory . '{,.}*', GLOB_BRACE);
 

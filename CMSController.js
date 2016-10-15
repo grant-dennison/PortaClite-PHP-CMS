@@ -547,12 +547,12 @@
     function POSTRequest(url) {
         this.xhttp = new XMLHttpRequest();
         this.xhttp.open("POST", url, true);
-        this.xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        this.xhttp.setRequestHeader("Content-type", "application/json");
         this.onresponse = function() { };
         this.data = {};
     }
     POSTRequest.prototype.addData = function(key, value) {
-        this.data[encodeURIComponent(key)] = encodeURIComponent(value);
+        this.data[key] = value;
     };
     POSTRequest.prototype.send = function() {
         var pr = this;
@@ -565,14 +565,7 @@
             }
         };
 
-        var dataString = "";
-        for(var key in this.data) {
-            dataString += key;
-            dataString += "=";
-            dataString += this.data[key];
-            dataString += "&";
-        }
-        dataString = dataString.substr(0, dataString.length - 1);
+        var dataString = JSON.stringify(this.data);
         this.xhttp.send(dataString);
     };
 } ());
