@@ -1,6 +1,11 @@
 <?php
     require_once "config.php";
 
+    function getJSONParams() {
+        $json = file_get_contents('php://input');
+        return json_decode($json, true);
+    }
+
     function ensurePathWithinTarget($path, $targetName) {
         if(!isPathWithinTarget($path, $targetName)) {
             error_log("Attempted security breach: accessing $path supposedly under target $targetName");

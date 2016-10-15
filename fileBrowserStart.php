@@ -57,10 +57,13 @@
                         };
 
                         var requestURL = "fileBrowser.php";
-                        var params = "target=" + targetForURI + "&directory=" + encodeURIComponent(link);
+                        var params = {
+                            target: targetForURI,
+                            directory: link
+                        };
                         xhttp.open("POST", requestURL, true);
-                        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                        xhttp.send(params);
+                        xhttp.setRequestHeader("Content-type", "application/json");
+                        xhttp.send(JSON.stringify(params));
                     }
                     else {
                         linkParent.removeChild(childLists[0]);

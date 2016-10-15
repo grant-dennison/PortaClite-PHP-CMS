@@ -2,9 +2,11 @@
     require_once "config.php";
     require_once "helperFunctions.php";
 
-    $content = $_POST["content"];
+    $request = getJSONParams();
 
-    $targetName = $_POST["target"];
+    $content = $request["content"];
+
+    $targetName = $request["target"];
     $targetInfo = $targets[$targetName];
     if(!$targetInfo) {
         return;
@@ -13,7 +15,7 @@
     $nextTargetInfo = $targets[$nextTargetName];
 
     $targetRoot = $targetInfo["relativePath"];
-    $targetFilename = $_POST["file"];
+    $targetFilename = $request["file"];
     ensurePathWithinTarget($targetFilename, $targetName);
 
     if($nextTargetName) {
@@ -21,7 +23,7 @@
         $nextTargetFilename = substr_replace($targetFilename, $nextTargetRoot, 0, strlen($targetRoot));
     }
 
-    $action = $_POST["action"];
+    $action = $request["action"];
 
     $response = [];
 
@@ -43,7 +45,7 @@
             flock($nextTargetFile, LOCK_EX);
             $sha1Target = sha1_file($targetFilename);
             $sha1Next = sha1_file($nextTargetFilename);
-            if($_POST["hash"] == $sha1Target && $_POST["deployHash"] == $sha1Next) {
+            if($request["hash"] == $sha1Target && $request["deployHash"] == $sha1Next) {
                 copy($targetFilename, $nextTargetFilename);
                 $sha1Next = $sha1Target;
                 $response["success"] = true;
@@ -59,7 +61,7 @@
         case "save": {
             $file = fopen($targetFilename, "c") or die("Unable to open file |".$targetFilename."|!");
             flock($file, LOCK_EX);
-            if(sha1_file($targetFilename) == $_POST["hash"]) {
+            if(sha1_file($targetFilename) == $request["hash"]) {
                 ftruncate($file, 0);
                 fwrite($file, $content);
                 $response["success"] = true;

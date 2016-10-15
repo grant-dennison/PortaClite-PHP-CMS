@@ -2,10 +2,12 @@
     require_once "config.php";
     require_once "helperFunctions.php";
 
-    $target = $_POST["target"];
-    $name = $_POST["name"];
-    $insertPath = $_POST["location"];
-    $action = $_POST["action"];
+    $request = getJSONParams();
+
+    $target = $request["target"];
+    $name = $request["name"];
+    $insertPath = $request["location"];
+    $action = $request["action"];
 
     $targetDir = "";
 
