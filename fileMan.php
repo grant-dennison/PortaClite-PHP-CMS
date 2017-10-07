@@ -31,7 +31,7 @@
     $finfo = finfo_open(FILEINFO_MIME);
 
     switch($action) {
-        case "publish": {
+        case "publish":
             if (!file_exists(dirname($nextTargetFilename))) {
                 mkdir(dirname($nextTargetFilename), 0755, true);
             }
@@ -57,8 +57,7 @@
             fclose($nextTargetFile);
             fclose($targetFile);
             break;
-        }
-        case "save": {
+        case "save":
             $file = fopen($targetFilename, "c") or die("Unable to open file |".$targetFilename."|!");
             flock($file, LOCK_EX);
             if(sha1_file($targetFilename) == $request["hash"]) {
@@ -67,22 +66,23 @@
                 $response["success"] = true;
             }
             $response["hash"] = sha1_file($targetFilename);
-            if($nextTargetFilename) {
-                $response["deployHash"] = sha1_file($nextTargetFilename);
-                if(!$response["deployHash"]) {
-                    $response["deployHash"] = sha1("");
+            if(isset($nextTargetFilename)) {
+                $response["deployHash"] = sha1("");
+                if(file_exists($nextTargetFilename)) {
+                    $response["deployHash"] = sha1_file($nextTargetFilename);
                 }
             }
             flock($file, LOCK_UN);
             fclose($file);
             break;
-        }
-        case "delete": {
+        case "delete":
             deleteFile($targetFilename);
             break;
-        }
-        case "diff": {
-            if(filesize($nextTargetFilename) > 100000000) {
+        case "diff":
+            if(!file_exists($nextTargetFilename)) {
+                $response["contentNextTarget"] = "";
+            }
+            else if(filesize($nextTargetFilename) > 100000000) {
                 $response["contentNextTarget"] = $probablyBinaryDisplay;
             }
             else {
@@ -90,17 +90,14 @@
 
                 //check to see if the mime-type starts with 'text'
                 if(substr(finfo_file($finfo, $nextTargetFilename), 0, 4) == 'text' || $contentsNextTarget == '' || ctype_space($contentsNextTarget)) {
-                    if (!file_exists($nextTargetFilename)) {
-                        touch($nextTargetFilename);
-                    }
                     $response["contentNextTarget"] =  $contentsNextTarget;
                 }
                 else {
                     $response["contentNextTarget"] = $probablyBinaryDisplay;
                 }
             }
-        }
-        case "fetch": {
+            //Fall through.
+        case "fetch":
             if(filesize($targetFilename) > 100000000) {
                 $response["content"] = $probablyBinaryDisplay;
             }
@@ -120,15 +117,14 @@
             }
             $response["success"] = true;
             $response["hash"] = sha1_file($targetFilename);
-            if($nextTargetFilename) {
-                $response["deployHash"] = sha1_file($nextTargetFilename);
-                if(!$response["deployHash"]) {
-                    $response["deployHash"] = sha1("");
+            if(isset($nextTargetFilename)) {
+                $response["deployHash"] = sha1("");
+                if(file_exists($nextTargetFilename)) {
+                    $response["deployHash"] = sha1_file($nextTargetFilename);
                 }
             }
             break;
-        }
-        case "move": {
+        case "move":
             $newPath = $content;
             if(file_exists($newPath)) {
                 die("file already exists");
@@ -139,7 +135,6 @@
 
             rename($targetFilename, $newPath);
             break;
-        }
     }
 
     echo json_encode($response);
@@ -168,4 +163,3 @@
             $response["success"] = unlink($filename);
         }
     }
-?>
