@@ -4,21 +4,18 @@
 
     $request = getJSONParams();
 
-    $content = $request["content"];
-
     $targetName = $request["target"];
     $targetInfo = $targets[$targetName];
     if(!$targetInfo) {
         return;
     }
-    $nextTargetName = $targetInfo["publishTarget"];
-    $nextTargetInfo = $targets[$nextTargetName];
-
     $targetRoot = $targetInfo["relativePath"];
     $targetFilename = $request["file"];
     ensurePathWithinTarget($targetFilename, $targetName);
 
-    if($nextTargetName) {
+    if(array_key_exists("publishTarget", $targetInfo)) {
+        $nextTargetName = $targetInfo["publishTarget"];
+        $nextTargetInfo = $targets[$nextTargetName];
         $nextTargetRoot = $nextTargetInfo["relativePath"];
         $nextTargetFilename = substr_replace($targetFilename, $nextTargetRoot, 0, strlen($targetRoot));
     }
@@ -58,6 +55,7 @@
             fclose($targetFile);
             break;
         case "save":
+            $content = $request["content"];
             $file = fopen($targetFilename, "c") or die("Unable to open file |".$targetFilename."|!");
             flock($file, LOCK_EX);
             if(sha1_file($targetFilename) == $request["hash"]) {
@@ -125,7 +123,7 @@
             }
             break;
         case "move":
-            $newPath = $content;
+            $newPath = $request["content"];
             if(file_exists($newPath)) {
                 die("file already exists");
             }

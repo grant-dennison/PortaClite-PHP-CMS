@@ -5,10 +5,10 @@
         require_once "config.php";
         require_once "helperFunctions.php";
 
-        $targetName = $_REQUEST["target"];
-        if(!$targetName) {
-            reset($targets);
-            $targetName = key($targets);
+        reset($targets);
+        $targetName = key($targets);
+        if(array_key_exists("target", $_REQUEST)) {
+            $targetName = $_REQUEST["target"];
         }
 
         //Check that target is valid
@@ -64,8 +64,8 @@
         var root_mirror = "<?php echo $targetInfo["relativePath"]; ?>";
         var fullRoot_mirror = "<?php echo $targetInfo["absolutePath"]; ?>";
         <?php
-        $publishTargetName = $targetInfo["publishTarget"];
-        if($publishTargetName) :
+        if(array_key_exists("publishTarget", $targetInfo)) :
+            $publishTargetName = $targetInfo["publishTarget"];
             $publishTargetInfo = $targets[$publishTargetName];
         ?>
         var publishTargetName = "<?php echo $publishTargetName; ?>";
@@ -88,7 +88,7 @@
         <div id="SiteNavigationBar" class="clearfix">
             <a id="diffLocalButton" href="#">Preview Save</a>
             <a id="saveButton" href="#">Save</a>
-            <?php if($targetInfo["publishTarget"]) : ?>
+            <?php if(array_key_exists("publishTarget", $targetInfo)) : ?>
                 <a id="diffPublishButton" href="#">Preview Publish</a>
                 <a id="publishButton" href="#">Publish</a>
             <?php endif; ?>
