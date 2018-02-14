@@ -4,8 +4,9 @@
 	$request = getJSONParams();
 
 	$searchDirectory = $request["directory"];
+	$target = $request["target"];
 
-	ensurePathWithinTarget($searchDirectory, $request["target"]);
+	ensurePathWithinTarget($searchDirectory, $target);
 
 	$entries = glob($searchDirectory . '{,.}*', GLOB_BRACE);
 
@@ -20,7 +21,7 @@
 
 		//Don't display ./ and ../
 		if($entryDisplay != "./" && $entryDisplay != "../") {
-			echo "<li><a class=\"browserItem\" href=\"".$entry."\">".$entryDisplay."</a></li>";
+			echo "<li><a class=\"browserItem\" href=\"".$entry."\" data-target=\"$target\">$entryDisplay</a></li>";
 		}
 	}
 
@@ -28,4 +29,3 @@
 	if($count == 2) {
 		echo "<li>(empty)</li>";
 	}
-?>

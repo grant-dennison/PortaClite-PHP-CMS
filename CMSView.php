@@ -5,30 +5,30 @@
         require_once "config.php";
         require_once "helperFunctions.php";
 
-        reset($targets);
-        $targetName = key($targets);
-        if(array_key_exists("target", $_REQUEST)) {
-            $targetName = $_REQUEST["target"];
+        reset($targetGroups);
+        $targetGroupName = key($targetGroups);
+        if(array_key_exists("group", $_REQUEST)) {
+            $targetGroupName = $_REQUEST["group"];
         }
 
         //Check that target is valid
-        $targetIsReal = false;
-        foreach($targets as $targetOpt => $targetInfo) {
-            if($targetOpt == $targetName) {
-                $targetIsReal = true;
+        $targetGroupIsReal = false;
+        foreach($targetGroups as $groupOpt => $group) {
+            if($groupOpt === $targetGroupName) {
+                $targetGroupIsReal = true;
                 break;
             }
         }
-        if(!$targetIsReal) {
-            echo "Invalid target. Please choose from the following\n";
+        if(!$targetGroupIsReal) {
+            echo "Invalid group. Please choose from the following\n";
             echo "<pre>";
-            print_r(array_keys($targets));
+            print_r(array_keys($targetGroups));
             echo "</pre>";
             return;
         }
         ?>
 
-        <title><?php echo $targetName; ?> CMS</title>
+        <title><?= $targetGroupName ?> CMS</title>
         <link rel="icon"
         type="image/png"
         href="/CMSIcon.png">
@@ -57,29 +57,9 @@
         <script src="bower_components/jsdiff/diff.min.js"></script>
 
         <script>
-        var probablyBinaryDisplay = "<?php echo $probablyBinaryDisplay; ?>";
+        var probablyBinaryDisplay = "<?= $probablyBinaryDisplay ?>";
 
-        var serveTarget = encodeURIComponent("<?php echo $targetName; ?>");
-        var targetName = "<?php echo $targetName; ?>";
-        var root_mirror = "<?php echo $targetInfo["relativePath"]; ?>";
-        var fullRoot_mirror = "<?php echo $targetInfo["absolutePath"]; ?>";
-        <?php
-        if(array_key_exists("publishTarget", $targetInfo)) :
-            $publishTargetName = $targetInfo["publishTarget"];
-            $publishTargetInfo = $targets[$publishTargetName];
-        ?>
-        var publishTargetName = "<?php echo $publishTargetName; ?>";
-        var publishRoot_mirror = "<?php echo $publishTargetInfo["relativePath"]; ?>";
-        var fullPublishRoot_mirror = "<?php echo $publishTargetInfo["absolutePath"]; ?>";
-        <?php
-        else :
-        ?>
-        var publishTargetName = null;
-        var publishRoot_mirror = null;
-        var fullPublishRoot_mirror = null;
-        <?php
-        endif;
-        ?>
+        var targetConfigurations = <?= json_encode($targets) ?>;
         </script>
 
         <link rel="stylesheet" type="text/css" href="cms.css">
@@ -88,10 +68,8 @@
         <div id="SiteNavigationBar" class="clearfix">
             <a id="diffLocalButton" href="#">Preview Save</a>
             <a id="saveButton" href="#">Save</a>
-            <?php if(array_key_exists("publishTarget", $targetInfo)) : ?>
-                <a id="diffPublishButton" href="#">Preview Publish</a>
-                <a id="publishButton" href="#">Publish</a>
-            <?php endif; ?>
+            <a id="diffPublishButton" href="#">Preview Publish</a>
+            <a id="publishButton" href="#">Publish</a>
         </div>
 
         <table id="mainPane"><tr id="mainRow">

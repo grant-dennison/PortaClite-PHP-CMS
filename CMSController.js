@@ -1,6 +1,8 @@
 (function() {
     //---------- INITIALIZATION ----------
+    var currentFileTarget;
     var currentFilePath;
+    var interactFileTarget;
     var interactFilePath;
     var interactFileIsDir;
     var interactElement; //HTML link interacted with
@@ -12,80 +14,92 @@
     // var mainFileBrowser ind index.php
 
     //File navigation context menu setup
-    var contextMenuOptions = [
-        {
-            label: "Open Link on current target (" + targetName + ")",
-            onclick: function(e) {
-                window.open(interactFilePath.replace(root_mirror, fullRoot_mirror), "_blank")
-            }
-        },
-        {
-            label: "Open Link on publish target (" + publishTargetName + ")",
-            onclick: function(e) {
-                window.open(interactFilePath.replace(root_mirror, fullPublishRoot_mirror), "_blank")
-            }
-        },
-        {
-            label: "Insert",
-            children: [
-                {
-                    label: "New File",
-                    onclick: function(e) {
-                        var baseFileName = window.prompt("Filename:", "index.php");
-                        if(baseFileName) {
-                            insertFile(baseFileName, interactFilePath, insertParentList);
-                        }
-                    }
-                },
-                {
-                    label: "New Directory",
-                    onclick: function(e) {
-                        var directoryName = window.prompt("Directory name:", "folder");
-                        if(directoryName) {
-                            mkDir(directoryName, interactFilePath, insertParentList);
-                        }
-                    }
-                },
-                {
-                    label: "Upload",
-                    onclick: function(e) {
-                        document.getElementById("DropZoneBack").style.visibility = "visible";
-                    }
-                }
-            ]
-        },
-        {
-            label: "Rename",
-            onclick: function(e) {
-                if(interactFilePath == root_mirror) {
-                    return;
-                }
-                var newFileName = window.prompt("New Filename:", "");
-                if(newFileName) {
-                    var newPath = newFileName.replace(/\/$/, "");
-                    rename(interactFilePath, newPath, interactElement);
-                }
-            }
-        },
-        {
-            label: "Delete",
-            onclick: function(e) {
-                if(interactFilePath == root_mirror) {
-                    alert("You cannot delete the website root!");
-                    return;
-                }
+    function makeContextMenuOptions(target, interactFilePath, interactElement) {
+        var targetConfig = targetConfigurations[target];
+        var targetName = targetConfig["name"] || target;
+        var root = targetConfig["relativePath"];
 
-                if(window.confirm(interactFilePath.replace(root_mirror, "root/") + "\n\nAre you sure you want to delete this file?")) {
-                    deleteFile(interactFilePath, interactElement);
+        var publishTarget = targetConfig["publishTarget"];
+        var publishTargetConfig = targetConfigurations[publishTarget] || {};
+        var publishTargetName = publishTargetConfig["name"] || publishTarget;
+
+        var options = [
+            {
+                label: "Open Link on current target (" + targetName + ")",
+                onclick: function() {
+                    window.open(interactFilePath.replace(root, targetConfig["absolutePath"]), "_blank")
+                }
+            },
+            {
+                label: "Open Link on publish target (" + publishTargetName + ")",
+                onclick: function() {
+                    window.open(interactFilePath.replace(root, publishTargetConfig["absolutePath"]), "_blank")
+                }
+            },
+            {
+                label: "Insert",
+                children: [
+                    {
+                        label: "New File",
+                        onclick: function() {
+                            var baseFileName = window.prompt("Filename:", "index.php");
+                            if(baseFileName) {
+                                insertFile(baseFileName, interactFilePath, insertParentList);
+                            }
+                        }
+                    },
+                    {
+                        label: "New Directory",
+                        onclick: function() {
+                            var directoryName = window.prompt("Directory name:", "folder");
+                            if(directoryName) {
+                                mkDir(directoryName, interactFilePath, insertParentList);
+                            }
+                        }
+                    },
+                    {
+                        label: "Upload",
+                        onclick: function() {
+                            document.getElementById("DropZoneBack").style.visibility = "visible";
+                        }
+                    }
+                ]
+            },
+            {
+                label: "Rename",
+                onclick: function() {
+                    if(interactFilePath === root) {
+                        return;
+                    }
+                    var newFileName = window.prompt("New Filename:", "");
+                    if(newFileName) {
+                        var newPath = newFileName.replace(/\/$/, "");
+                        rename(interactFilePath, newPath, interactElement);
+                    }
+                }
+            },
+            {
+                label: "Delete",
+                onclick: function() {
+                    if(interactFilePath === root) {
+                        alert("You cannot delete the website root!");
+                        return;
+                    }
+
+                    if(window.confirm(getRootRelativePath(target, interactFilePath) + "\n\nAre you sure you want to delete this file?")) {
+                        deleteFile(target, interactFilePath, interactElement);
+                    }
                 }
             }
+        ];
+
+        //If no publish target exists, splice out context menu option to open on publish target
+        if(!publishTargetName) {
+            options.splice(1, 1);
         }
-    ];
-    //If no publish target exists, splice out context menu option to open on publish target
-    if(!publishTargetName) {
-        contextMenuOptions.splice(1, 1);
+
+        return options;
     }
-    var fileLinkContextMenu = contextmenu(contextMenuOptions);
 
     //CodeMirror setup
     var codeMirrorContainer = document.getElementById("codeEditor");
@@ -99,7 +113,7 @@
     });
     codeEditor.setOption("extraKeys", {
         Tab: function(cm) {
-            var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+            var spaces = new Array(cm.getOption("indentUnit") + 1).join(" ");
             cm.replaceSelection(spaces);
         },
         "Ctrl-S": saveFile
@@ -125,28 +139,26 @@
         toggleHighlightButton("diffLocalButton", false);
         e.preventDefault();
     });
-    if(publishRoot_mirror) {
-        document.getElementById("publishButton").addEventListener("click", function(e) {
-            publishFile();
-            e.preventDefault();
-        });
-        document.getElementById("diffPublishButton").addEventListener("click", function(e) {
-            diffPublish();
-            toggleHighlightButton("diffPublishButton", false);
-            e.preventDefault();
-        });
-    }
+    document.getElementById("publishButton").addEventListener("click", function(e) {
+        publishFile();
+        e.preventDefault();
+    });
+    document.getElementById("diffPublishButton").addEventListener("click", function(e) {
+        diffPublish();
+        toggleHighlightButton("diffPublishButton", false);
+        e.preventDefault();
+    });
 
     window.onbeforeunload = function (e) {
         if(isSaved()) {
             return;
         }
 
-        var message = "There are unsaved changes in the open file.\nAre you sure you want to discard these changes?",
-        e = e || window.event;
+        var message = "There are unsaved changes in the open file.\nAre you sure you want to discard these changes?";
+        var e2 = e || window.event;
         // For IE and Firefox
-        if (e) {
-            e.returnValue = message;
+        if (e2) {
+            e2.returnValue = message;
         }
 
         // For Safari
@@ -156,7 +168,7 @@
     //mainFileBrowser declared/initialized in global scope of index.php
     mainFileBrowser.addEventListener("clicklink", function(e) {
         if(!e.detail.isDir && (isSaved() || window.confirm("There are unsaved changes in the open file.\nAre you sure you want to discard these changes?"))) {
-            fetchFile(e.detail.path);
+            fetchFile(e.detail.serverTarget, e.detail.path);
             toggleHighlightButton("diffLocalButton", false);
             toggleHighlightButton("diffPublishButton", false);
             e.preventDefault();
@@ -170,6 +182,7 @@
         e.preventDefault();
     });
     mainFileBrowser.addEventListener("contextmenulink", function(e) {
+        interactFileTarget = e.detail.serverTarget;
         interactFilePath = e.detail.path;
         interactFileIsDir = e.detail.isDir;
         interactElement = e.detail.target;
@@ -180,6 +193,8 @@
         else {
             insertParentList = interactElement.parentElement.parentElement;
         }
+        var menuOptions = makeContextMenuOptions(interactFileTarget, interactFilePath, interactElement);
+        var fileLinkContextMenu = contextmenu(menuOptions);
         contextmenu.show(fileLinkContextMenu, e.detail.clientX, e.detail.clientY);
     });
 
@@ -188,16 +203,16 @@
     var dropZoneUploader = new Dropzone("#DropZoneContainer", { url: "uploadFile.php"});
     dropZoneUploader.on("sending", function(file, xhr, data) {
         data.append("location", interactFilePath);
-        data.append("target", serveTarget);
+        data.append("target", interactFileTarget);
     });
 
     //Hide dropzone on click backdrop
     dropZoneBack.addEventListener("click", function(e) {
-        if(e.target == dropZoneBack) {
+        if(e.target === dropZoneBack) {
             dropZoneBack.style.visibility = "hidden";
             var zone = dropZoneUploader;
             for(var i = 0; i < zone.files.length; i++) {
-                insertToFileBrowser(zone.files[i].name, interactFilePath, insertParentList);
+                insertToFileBrowser(interactFileTarget, zone.files[i].name, interactFilePath, insertParentList);
             }
             zone.removeAllFiles();
         }
@@ -206,7 +221,7 @@
     //Hide diff on click backdrop
     var diffBack = document.getElementById("DiffBack");
     diffBack.addEventListener("click", function(e) {
-        if(e.target == diffBack) {
+        if(e.target === diffBack) {
             diffBack.style.visibility = "hidden";
         }
     });
@@ -224,20 +239,21 @@
 
 
     //---------- METHODS ----------
-
-    function targetURL(relativePath) {
-        return relativePath.replace(root_mirror, fullRoot_mirror);
+    function getPublishTarget(target) {
+        return targetConfigurations[target]["publishTarget"];
     }
-    function publishURL(relativePath) {
-        return relativePath.replace(root_mirror, fullPublishRoot_mirror);
+    function getRootRelativePath(target, relativePath) {
+        var targetConfig = targetConfigurations[target];
+        var relativeRoot = targetConfig["relativePath"];
+        var targetName = targetConfig["name"] || target;
+        return relativePath.replace(relativeRoot, targetName + " root/");
     }
-
     function saveFile() {
         if(!currentFilePath || codeEditor.getOption("readOnly")) {
             return;
         }
 
-        if(!publishRoot_mirror) {
+        if(!getPublishTarget(currentFileTarget)) {
             if(!confirm("You are about to make a change directly to an end deployment target.\nAre you sure you want to continue?")) {
                 return;
             }
@@ -245,16 +261,14 @@
 
         var submittingCode = codeEditor.getValue();
 
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "save");
+        var xhttp = new POSTRequest("fileMan.php", currentFileTarget, "save");
         xhttp.addData("file", currentFilePath);
         xhttp.addData("content", submittingCode);
         //Pass the hash of the unmodified file back to the server
         xhttp.addData("hash", targetFileHash);
         xhttp.onresponse = function() {
             if(!this.response.success) {
-                alert("The file on the server has been modified by another user since you opened it. Please compare your working copy with the server copy before overwriting it.")
+                alert("The file on the server has been modified by another user since you opened it. Please compare your working copy with the server copy before overwriting it.");
                 toggleHighlightButton("diffLocalButton", true);
             }
             else { //on success
@@ -264,7 +278,7 @@
 
             applyPublished(this.response.hash === this.response.deployHash);
             publishTargetFileHash = this.response.deployHash;
-        }
+        };
         xhttp.send();
     }
     function isSaved() {
@@ -275,22 +289,20 @@
     }
 
     function publishFile() {
-        if(!currentFilePath || !publishRoot_mirror) {
+        if(!currentFilePath || !getPublishTarget(currentFileTarget)) {
             return;
         }
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "publish");
+        var xhttp = new POSTRequest("fileMan.php", currentFileTarget, "publish");
         xhttp.addData("file", currentFilePath);
         xhttp.addData("hash", targetFileHash);
         xhttp.addData("deployHash", publishTargetFileHash);
         xhttp.onresponse = function() {
-            if(this.response.hash != targetFileHash) {
+            if(this.response.hash !== targetFileHash) {
                 alert("The file you are trying to deploy has been modified since you last viewed it. \n\rFile not deployed.");
                 toggleHighlightButton("diffLocalButton", true);
             }
-            else if(this.response.deployHash != targetFileHash) {
-                if(this.response.deployHash != publishTargetFileHash) {
+            else if(this.response.deployHash !== targetFileHash) {
+                if(this.response.deployHash !== publishTargetFileHash) {
                     alert("The deployed file has been modified. Please compare files before overwriting the deployed file.");
                     toggleHighlightButton("diffPublishButton", true);
                 }
@@ -301,15 +313,12 @@
             else {
                 publishTargetFileHash = this.response.deployHash;
             }
-            applyPublished(this.response.hash == this.response.deployHash);
-        }
+            applyPublished(this.response.hash === this.response.deployHash);
+        };
         xhttp.send();
     }
 
     function applyPublished(isPublished) {
-        if(!publishTargetName) {
-            return;
-        }
         if(isPublished) {
             document.getElementById("publishButton").className = "";
         }
@@ -331,21 +340,25 @@
         }
     }
 
-    function deleteFile(filename, element) {
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "delete");
+    function togglePublishButtons(canPublish) {
+        var display = canPublish ? "" : "none";
+        document.getElementById("diffPublishButton").style.display = display;
+        document.getElementById("publishButton").style.display = display;
+    }
+
+    function deleteFile(target, filename, element) {
+        var xhttp = new POSTRequest("fileMan.php", target, "delete");
         xhttp.addData("file", filename);
         xhttp.onresponse = function() {
-            if(filename == currentFilePath) {
-                loadFileToEditor("", "");
+            if(filename === currentFilePath) {
+                loadFileToEditor("", "", "");
             }
             if(element) {
-                listItemElement = element.parentElement;
-                parentList = listItemElement.parentElement;
+                var listItemElement = element.parentElement;
+                var parentList = listItemElement.parentElement;
                 parentList.removeChild(listItemElement);
             }
-        }
+        };
         xhttp.send();
     }
 
@@ -388,9 +401,7 @@
             return;
         }
 
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "fetch");
+        var xhttp = new POSTRequest("fileMan.php", currentFileTarget, "fetch");
         xhttp.addData("file", currentFilePath);
         xhttp.onresponse = function() {
             if(!this.response.success) {
@@ -400,8 +411,8 @@
 
             var local = codeEditor.getValue();
             var remote = this.response.content;
-            if(local == probablyBinaryDisplay && remote == probablyBinaryDisplay) {
-                if(targetFileHash != this.response.hash) {
+            if(local === probablyBinaryDisplay && remote === probablyBinaryDisplay) {
+                if(targetFileHash !== this.response.hash) {
                     remote += " (modified)";
                 }
             }
@@ -409,8 +420,8 @@
 
             targetFileHash = this.response.hash;
             publishTargetFileHash = this.response.deployHash;
-            applyPublished(targetFileHash == publishTargetFileHash);
-        }
+            applyPublished(targetFileHash === publishTargetFileHash);
+        };
         xhttp.send();
     }
 
@@ -419,9 +430,7 @@
             return;
         }
 
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "diff");
+        var xhttp = new POSTRequest("fileMan.php", currentFileTarget, "diff");
         xhttp.addData("file", currentFilePath);
         xhttp.onresponse = function() {
             if(!this.response.success) {
@@ -431,8 +440,8 @@
 
             var local = this.response.content;
             var remote = this.response.contentNextTarget;
-            if(local == probablyBinaryDisplay && remote == probablyBinaryDisplay) {
-                if(targetFileHash != this.response.hash) {
+            if(local === probablyBinaryDisplay && remote === probablyBinaryDisplay) {
+                if(targetFileHash !== this.response.hash) {
                     remote += " (modified)";
                 }
             }
@@ -440,15 +449,15 @@
 
             targetFileHash = this.response.hash;
             publishTargetFileHash = this.response.deployHash;
-            applyPublished(targetFileHash == publishTargetFileHash);
-        }
+            applyPublished(targetFileHash === publishTargetFileHash);
+        };
         xhttp.send();
     }
 
-    function loadFileToEditor(filename, contents) {
+    function loadFileToEditor(target, filename, contents) {
         targetFileContents = contents;
         codeEditor.setValue(contents || "");
-        codeEditor.setOption("readOnly", contents == probablyBinaryDisplay);
+        codeEditor.setOption("readOnly", contents === probablyBinaryDisplay);
         //Get extension
         var extResult = /[^\/]+\.([^\/\.]+)/.exec(filename);
         var ext = "default";
@@ -456,14 +465,14 @@
             ext = extResult[1];
         }
         codeEditor.setOption("mode", extToCMMode(ext));
+        currentFileTarget = target;
         currentFilePath = filename;
-        document.getElementById("fileInfo").innerHTML = currentFilePath.replace(root_mirror, "root/");
+        togglePublishButtons(!!getPublishTarget(target));
+        document.getElementById("fileInfo").innerHTML = getRootRelativePath(target, currentFilePath);
     }
 
-    function fetchFile(filename) {
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "fetch");
+    function fetchFile(target, filename) {
+        var xhttp = new POSTRequest("fileMan.php", target, "fetch");
         xhttp.addData("file", filename);
         xhttp.onresponse = function() {
             if(!this.response.success) {
@@ -472,84 +481,78 @@
             }
             targetFileHash = this.response.hash;
             publishTargetFileHash = this.response.deployHash;
-            loadFileToEditor(filename, this.response.content);
-            applyPublished(targetFileHash == publishTargetFileHash);
-        }
+            loadFileToEditor(target, filename, this.response.content);
+            applyPublished(targetFileHash === publishTargetFileHash);
+        };
         xhttp.send();
     }
 
-    function insertFile(filename, location, containingListElement) {
-        var xhttp = new POSTRequest("fileInserter.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "touch");
+    function insertFile(target, filename, location, containingListElement) {
+        var xhttp = new POSTRequest("fileInserter.php", target, "touch");
         xhttp.addData("name", filename);
         xhttp.addData("location", location);
         xhttp.onresponse = function() {
             //Update file browser tree
-            insertToFileBrowser(filename, location, containingListElement);
-            fetchFile(targetDirectory(location) + filename);
-        }
+            insertToFileBrowser(target, filename, location, containingListElement);
+            fetchFile(target, targetDirectory(location) + filename);
+        };
         xhttp.send();
     }
 
-    function insertToFileBrowser(filename, location, containingListElement) {
+    function insertToFileBrowser(target, filename, location, containingListElement) {
         if(containingListElement) {
             var newListItem = document.createElement("LI");
             var newLink = document.createElement("A");
             newLink.setAttribute("class", "browserItem");
             newLink.setAttribute("href", targetDirectory(location) + filename);
+            newLink.setAttribute("data-target", target);
             newLink.textContent = filename;
             newListItem.appendChild(newLink);
             containingListElement.insertBefore(newListItem, containingListElement.firstChild);
         }
     }
 
-    function mkDir(dirname, location, containingListElement) {
-        var xhttp = new POSTRequest("fileInserter.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "mkdir");
+    function mkDir(target, dirname, location, containingListElement) {
+        var xhttp = new POSTRequest("fileInserter.php", target, "mkdir");
         xhttp.addData("name", dirname);
         xhttp.addData("location", location);
         xhttp.onresponse = function() {
             //Update file browser tree
-            insertToFileBrowser(dirname + "/", location, containingListElement);
-        }
+            insertToFileBrowser(target, dirname + "/", location, containingListElement);
+        };
         xhttp.send();
     }
 
-    function move(oldFilePath, newFilePath) {
-        var xhttp = new POSTRequest("fileMan.php");
-        xhttp.addData("target", serveTarget);
-        xhttp.addData("action", "move");
+    function move(target, oldFilePath, newFilePath) {
+        var xhttp = new POSTRequest("fileMan.php", target, "move");
         xhttp.addData("file", oldFilePath);
         xhttp.addData("content", newFilePath);
-        xhttp.onresponse = function() {
-
-        }
         xhttp.send();
     }
     function rename(interactFilePath, newName, linkElement) {
         var oldFilePath = interactFilePath.replace(/\/$/, "");
         var newFilePath = oldFilePath.replace(/\/[^\/]+\/?$/, "/" + newName);
-        move(oldFilePath, newFilePath);
+        move(linkElement.getAttribute("data-target"), oldFilePath, newFilePath);
         var ending = (interactFileIsDir ? "/" : "");
         linkElement.innerHTML = newName + ending;
         linkElement.setAttribute("href", newFilePath + ending);
     }
 
-    function targetDirectory(targetPath, isDir) {
+    function targetDirectory(targetPath) {
         return /.+\//.exec(targetPath);
     }
 
 
     //---------- CLASSES ----------
 
-    function POSTRequest(url) {
+    function POSTRequest(url, serverTarget, action) {
         this.xhttp = new XMLHttpRequest();
         this.xhttp.open("POST", url, true);
         this.xhttp.setRequestHeader("Content-type", "application/json");
         this.onresponse = function() { };
         this.data = {};
+        this.addData("target", serverTarget);
+        this.addData("action", action);
     }
     POSTRequest.prototype.addData = function(key, value) {
         this.data[key] = value;
@@ -557,7 +560,7 @@
     POSTRequest.prototype.send = function() {
         var pr = this;
         this.xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
+            if (this.readyState === 4 && this.status === 200) {
                 pr.responseText = this.responseText;
                 pr.responseXML = this.responseXML;
                 pr.response = this.responseText ? JSON.parse(this.responseText) : {};
