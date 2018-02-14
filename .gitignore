@@ -1,2 +1,4 @@
 error_log
 .htaccess
+config.php
+.idea/

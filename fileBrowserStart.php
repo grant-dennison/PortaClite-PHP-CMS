@@ -49,7 +49,7 @@
 
                         var requestURL = "fileBrowser.php";
                         var params = {
-                            target: encodeURIComponent(event.detail.serverTarget),
+                            target: event.detail.serverTarget,
                             directory: event.detail.path
                         };
                         xhttp.open("POST", requestURL, true);
