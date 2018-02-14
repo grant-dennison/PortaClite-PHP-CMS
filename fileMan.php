@@ -57,13 +57,14 @@
         case "save":
             $content = $request["content"];
             $file = fopen($targetFilename, "c") or die("Unable to open file |".$targetFilename."|!");
+            //Apparently sha1_file() doesn't work when holding exclusive lock on XAMPP???
             flock($file, LOCK_EX);
-            if(sha1_file($targetFilename) == $request["hash"]) {
+            $response["hash"] = sha1_file($targetFilename);
+            if($response["hash"] == $request["hash"]) {
                 ftruncate($file, 0);
                 fwrite($file, $content);
                 $response["success"] = true;
             }
-            $response["hash"] = sha1_file($targetFilename);
             if(isset($nextTargetFilename)) {
                 $response["deployHash"] = sha1("");
                 if(file_exists($nextTargetFilename)) {
@@ -115,6 +116,7 @@
             }
             $response["success"] = true;
             $response["hash"] = sha1_file($targetFilename);
+
             if(isset($nextTargetFilename)) {
                 $response["deployHash"] = sha1("");
                 if(file_exists($nextTargetFilename)) {

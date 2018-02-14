@@ -44,7 +44,7 @@
                         onclick: function() {
                             var baseFileName = window.prompt("Filename:", "index.php");
                             if(baseFileName) {
-                                insertFile(baseFileName, interactFilePath, insertParentList);
+                                insertFile(target, baseFileName, interactFilePath, insertParentList);
                             }
                         }
                     },
@@ -53,7 +53,7 @@
                         onclick: function() {
                             var directoryName = window.prompt("Directory name:", "folder");
                             if(directoryName) {
-                                mkDir(directoryName, interactFilePath, insertParentList);
+                                mkDir(target, directoryName, interactFilePath, insertParentList);
                             }
                         }
                     },
@@ -74,7 +74,7 @@
                     var newFileName = window.prompt("New Filename:", "");
                     if(newFileName) {
                         var newPath = newFileName.replace(/\/$/, "");
-                        rename(interactFilePath, newPath, interactElement);
+                        rename(target, interactFilePath, newPath, interactElement);
                     }
                 }
             },
@@ -240,7 +240,7 @@
 
     //---------- METHODS ----------
     function getPublishTarget(target) {
-        return targetConfigurations[target]["publishTarget"];
+        return (targetConfigurations[target] || {})["publishTarget"];
     }
     function getRootRelativePath(target, relativePath) {
         var targetConfig = targetConfigurations[target];
@@ -529,10 +529,10 @@
         xhttp.addData("content", newFilePath);
         xhttp.send();
     }
-    function rename(interactFilePath, newName, linkElement) {
+    function rename(target, interactFilePath, newName, linkElement) {
         var oldFilePath = interactFilePath.replace(/\/$/, "");
         var newFilePath = oldFilePath.replace(/\/[^\/]+\/?$/, "/" + newName);
-        move(linkElement.getAttribute("data-target"), oldFilePath, newFilePath);
+        move(target, oldFilePath, newFilePath);
         var ending = (interactFileIsDir ? "/" : "");
         linkElement.innerHTML = newName + ending;
         linkElement.setAttribute("href", newFilePath + ending);
