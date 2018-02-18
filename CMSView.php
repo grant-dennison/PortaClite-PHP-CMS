@@ -31,7 +31,7 @@
         <title><?= $targetGroupName ?> CMS</title>
         <link rel="icon"
         type="image/png"
-        href="/CMSIcon.png">
+        href="CMSIcon.png">
 
         <!-- Dropzone -->
         <script src="bower_components/dropzone/dist/min/dropzone.min.js"></script>
