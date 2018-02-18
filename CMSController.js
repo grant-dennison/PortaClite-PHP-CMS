@@ -237,6 +237,9 @@
         }
     }, 1000);
 
+    //Blank out file editor
+    loadFileToEditor("", "", "");
+
 
     //---------- METHODS ----------
     function getPublishTarget(target) {
@@ -471,7 +474,7 @@
         currentFileTarget = target;
         currentFilePath = filename;
         togglePublishButtons(!!getPublishTarget(target));
-        document.getElementById("fileInfo").innerHTML = getRootRelativePath(target, currentFilePath);
+        document.getElementById("fileInfo").innerHTML = getRootRelativePath(target, currentFilePath) || "No file opened";
     }
 
     function fetchFile(target, filename) {
