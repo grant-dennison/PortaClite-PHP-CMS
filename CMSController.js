@@ -243,6 +243,9 @@
         return (targetConfigurations[target] || {})["publishTarget"];
     }
     function getRootRelativePath(target, relativePath) {
+        if(!relativePath) {
+            return "";
+        }
         var targetConfig = targetConfigurations[target];
         var relativeRoot = targetConfig["relativePath"];
         var targetName = targetConfig["name"] || target;

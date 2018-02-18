@@ -59,12 +59,13 @@
             $file = fopen($targetFilename, "c") or die("Unable to open file |".$targetFilename."|!");
             //Apparently sha1_file() doesn't work when holding exclusive lock on XAMPP???
             flock($file, LOCK_EX);
-            $response["hash"] = sha1_file($targetFilename);
-            if($response["hash"] == $request["hash"]) {
+            if(sha1_file($targetFilename) == $request["hash"]) {
                 ftruncate($file, 0);
                 fwrite($file, $content);
                 $response["success"] = true;
             }
+            //SHA1 again because file updated
+            $response["hash"] = sha1_file($targetFilename);
             if(isset($nextTargetFilename)) {
                 $response["deployHash"] = sha1("");
                 if(file_exists($nextTargetFilename)) {
